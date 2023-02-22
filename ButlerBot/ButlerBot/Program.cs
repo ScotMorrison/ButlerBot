@@ -1,4 +1,4 @@
-﻿using LeagueCustomMatchmaking.Bot_Core;
+﻿using LeagueCustomMatchmaking.BotClient;
 
 namespace ButlerBot;
 
@@ -8,8 +8,8 @@ internal class Program
 
     public async Task MainAsync()
     {
-        BotCore bot = new();
+        BotClient bot = new();
 
-        await bot.LoginAsync();
+        await bot.LoginAsync(writeCommands: true);
     }
 }
