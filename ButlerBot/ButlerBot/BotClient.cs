@@ -10,24 +10,32 @@ namespace LeagueCustomMatchmaking.BotClient;
 public class BotClient
 {
     private DiscordSocketClient _client;
-    private string token = AppConfigReader.AccessToken;
+    private string _token;
     private LobbyView? _lobbyView;
 
     public async Task LoginAsync(bool writeCommands)
     {
+        _token = AppConfigReader.AccessToken;
         var config = new DiscordSocketConfig();
         _client = new DiscordSocketClient(config);
         
         _client.Log += Log;
-        if (writeCommands) _client.Ready += WriteCommands;
+        if (writeCommands) _client.Ready += CreateSlashCommands;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.ButtonExecuted += ButtonHandler;
+        _client.SelectMenuExecuted += SelectHandler;
 
-        await _client.LoginAsync(TokenType.Bot, token);
+        await _client.LoginAsync(TokenType.Bot, _token);
         await _client.StartAsync();
 
         // Block this task until the program is closed.
         await Task.Delay(-1);
+    }
+
+    private async Task SelectHandler(SocketMessageComponent arg)
+    {
+        var text = string.Join(", ", arg.Data.Values);
+        await arg.RespondAsync($"You have selected {text}");
     }
 
     private Task Log(LogMessage msg)
@@ -36,7 +44,7 @@ public class BotClient
         return Task.CompletedTask;
     }
 
-    private async Task WriteCommands()
+    private async Task CreateSlashCommands()
     {
         var lobbyCommands = new SlashCommandBuilder()
             .WithName("lobby")
@@ -76,7 +84,7 @@ public class BotClient
             case "lobby":
                 await HandleLobbyCommands(command);
                 break;
-            case "preferences":
+            case "player-preferences":
                 await HandlePreferencesCommand(command);
                 break;
         }
@@ -159,9 +167,15 @@ public class BotClient
             await command.RespondAsync("You are not hosting a lobby.", ephemeral: true);
         }
     }
-
     private async Task HandlePreferencesCommand(SocketSlashCommand command)
     {
-        await command.RespondAsync("Not yet implemented");
+        await command.RespondAsync("Check your DMs for the preference menu", ephemeral: true);
+
+        ComponentBuilder prefMenuBuilder = PreferenceHandler.CreatePreferencesMenu();
+        var submitBuilder = new ComponentBuilder()
+            .WithButton(PreferenceHandler.CreateSubmitButton());
+
+        await command.User.SendMessageAsync("Preferences form", components: prefMenuBuilder.Build());
+        await command.User.SendMessageAsync("Submit when finished", components: submitBuilder.Build());
     }
 }

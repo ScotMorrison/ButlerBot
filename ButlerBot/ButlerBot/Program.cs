@@ -10,6 +10,6 @@ internal class Program
     {
         BotClient bot = new();
 
-        await bot.LoginAsync(writeCommands: true);
+        await bot.LoginAsync(writeCommands: false);
     }
 }
