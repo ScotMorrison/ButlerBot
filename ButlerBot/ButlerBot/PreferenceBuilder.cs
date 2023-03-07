@@ -2,7 +2,7 @@
 
 namespace ButlerBot;
 
-public static class PreferenceHandler
+public static class PreferenceBuilder
 {
     public static ComponentBuilder CreatePreferencesMenu()
     {
@@ -21,7 +21,7 @@ public static class PreferenceHandler
             .WithMinValues(1)
             .WithMaxValues(1);
 
-        for(int i = 1; i <= 10; i++)
+        for(int i = 1; i <= 5; i++)
         {
             menuBuilder.AddOption($"{role}:{i}", $"{role}-{i}");
         }
@@ -35,21 +35,5 @@ public static class PreferenceHandler
             .WithCustomId("pref-submit")
             .WithLabel("Submit")
             .WithStyle(ButtonStyle.Primary);
-    }
-}
-
-public class PrefIO
-{
-    private const string _fileName = "PlayerPrefs.JSON";
-
-
-    public void ReadPlayersFromFile()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void WritePlayersToFile()
-    {
-        throw new NotImplementedException();
     }
 }

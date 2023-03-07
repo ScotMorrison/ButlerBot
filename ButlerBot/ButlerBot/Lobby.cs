@@ -33,8 +33,8 @@ public class Lobby
     public bool Authorise(SocketUser user) => user == Host;
     public void Cancel() => LobbyCancelled.Invoke(this, new());
 
-    public string Matchmake()
+    public void Matchmake()
     {
-        throw new NotImplementedException();
+        LobbyUpdated.Invoke(this, new());
     }
 }

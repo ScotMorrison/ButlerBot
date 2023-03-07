@@ -27,7 +27,7 @@ public class Bot
         _client = new DiscordSocketClient(config);
 
         _lobbyController = new();
-        _prefController = new(_client);
+        _prefController = new();
         _responses = new(_lobbyController, _prefController);
     }
 
@@ -51,22 +51,33 @@ public class Bot
         switch (command.Data.Name)
         {
             case _lobbyCommand:
-                await _lobbyController.Handle(command);
+                await _lobbyController.HandleSlashCommand(command);
                 break;
             case _preferencesCommand:
-                await _prefController.Handle(command);
+                _prefController.HandleSlashCommand(command);
                 break;
         }
     }
     private async Task HandleSelect(SocketMessageComponent arg)
     {
-        throw new NotImplementedException();
-        //var text = string.Join(", ", arg.Data.Values);
-        //await arg.RespondAsync($"You have selected {text}");
+        _prefController.HandleSelect(arg);
+        await arg.RespondAsync();
     }
-    private Task HandleButton(SocketMessageComponent component)
+    private async Task HandleButton(SocketMessageComponent component)
     {
-        throw new NotImplementedException();
+        string identifier = component.Data.CustomId.Split("-")[0];
+
+        switch (identifier)
+        {
+            case "lobby":
+                throw new NotImplementedException();
+                break;
+            case "pref":
+                await _prefController.HandleButton(component);
+                break;
+            default:
+                throw new NotImplementedException();
+        }
     }
     private Task Log(LogMessage msg)
     {

@@ -19,35 +19,42 @@ public class LobbyController
     #region Events
     public event EventHandler<CommandEventArgs> LobbyCreated;
     public event EventHandler<CommandEventArgs> LobbyCancelled;
+    public event EventHandler<CommandEventArgs> MatchmakingRun;
+    public event EventHandler<CommandEventArgs> LobbyStarted;
+
     public event EventHandler<CommandEventArgs> InvalidCommand;
     public event EventHandler<CommandEventArgs> LobbyExists;
+    public event EventHandler<CommandEventArgs> LobbyNotExists;
     public event EventHandler<CommandEventArgs> UnauthorisedAccess;
     #endregion
 
-    public async Task Handle(SocketSlashCommand command)
+    public async Task HandleSlashCommand(SocketSlashCommand command)
     {
         var subCommand = command.Data.Options.First().Name;
         switch (subCommand)
         {
             case _create:
                 await CreateLobby(command);
-                LobbyCreated.Invoke(this, new(command));
+                LobbyCreated?.Invoke(this, new(command));
                 break;
             case _matchmake:
-                await Matchmake(command);
+                Matchmake(command);
+                MatchmakingRun?.Invoke(this, new(command));
                 break;
             case _cancel:
-                await CancelLobby(command);
+                CancelLobby(command);
+                LobbyCancelled?.Invoke(this, new(command));
                 break;
             case _start:
-                await StartLobby(command);
+                StartLobby(command);
+                LobbyStarted?.Invoke(this, new(command));
                 break;
             default:
-                //Send unrecognised message
+                InvalidCommand?.Invoke(this, new(command));
                 break;
         }
     }
-    public async Task CreateLobby(SocketSlashCommand command)
+    private async Task CreateLobby(SocketSlashCommand command)
     {
         if(_lobby is null)
         {
@@ -56,32 +63,51 @@ public class LobbyController
             await _view.Initialise();
             _lobby.Add(command.User);
         }
+        else
+        {
+            LobbyExists?.Invoke(this, new(command));
+        }
     }
-    private Task StartLobby(SocketSlashCommand command)
+ 
+    private void CancelLobby(SocketSlashCommand command)
     {
-        throw new NotImplementedException();
-    }
-
-    private async Task CancelLobby(SocketSlashCommand command)
-    {
-        if (_lobby.Authorise(command.User))
+        if (CheckLobbyExistsAndUserIsHost(command))
         {
             _lobby.Cancel();
             _lobby = null;
             _view = null;
         }
-        else
+    }
+
+    private void Matchmake(SocketSlashCommand command)
+    {
+        if (CheckLobbyExistsAndUserIsHost(command))
         {
-            UnauthorisedAccess.Invoke(this, new(command));
+            throw new NotImplementedException();
+        }
+    }
+    private void StartLobby(SocketSlashCommand command)
+    {
+        if (CheckLobbyExistsAndUserIsHost(command))
+        {
+            throw new NotImplementedException();
         }
     }
 
-    private Task Matchmake(SocketSlashCommand command)
+    private bool CheckLobbyExistsAndUserIsHost(SocketSlashCommand command)
     {
-        throw new NotImplementedException();
+        if (_lobby is null)
+        {
+            LobbyNotExists?.Invoke(this, new(command));
+            return false;
+        }
+        else if (!_lobby.Authorise(command.User))
+        {
+            UnauthorisedAccess?.Invoke(this, new(command));
+            return false;
+        }
+        else return true;
     }
-
-
     public SlashCommandBuilder AddCommands(SlashCommandBuilder scb)
     {
         return scb.AddOption(new SlashCommandOptionBuilder()
@@ -113,4 +139,12 @@ public class CommandEventArgs
     }
 }
 
+public class ComponentEventArgs
+{
+    public SocketMessageComponent Component;
 
+    public ComponentEventArgs(SocketMessageComponent cmp)
+    {
+        Component = cmp;
+    }
+}

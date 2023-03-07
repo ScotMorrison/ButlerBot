@@ -1,24 +1,73 @@
-﻿using Discord.WebSocket;
+﻿using ButlerBot;
+using Discord.WebSocket;
 
 namespace LeagueCustomMatchmaking.BotClient;
 
 internal class PreferenceController
 {
-    private readonly DiscordSocketClient _client;
-    public PreferenceController(DiscordSocketClient client)
+    private PreferenceView? _view;
+    private Preferences? _prefs;
+    private PrefIO _IO;
+
+    public event EventHandler<CommandEventArgs> PreferenceRequest;
+    public event EventHandler<CommandEventArgs> PreferencesExists;
+    public event EventHandler<ComponentEventArgs> PreferencesSaved;
+
+    public PreferenceController()
     {
-        _client = client;
+        _IO = new();
     }
-    public async Task Handle(SocketSlashCommand command)
+
+    public void HandleSlashCommand(SocketSlashCommand command)
     {
-        throw new NotImplementedException();
-        //await command.RespondAsync("Check your DMs for the preference menu", ephemeral: true);
+        CreatePreferences(command);
+    }
 
-        //ComponentBuilder prefMenuBuilder = PreferenceHandler.CreatePreferencesMenu();
-        //var submitBuilder = new ComponentBuilder()
-        //    .WithButton(PreferenceHandler.CreateSubmitButton());
+    public void HandleSelect(SocketMessageComponent component)
+    {
+        string role = string.Join("", component.Data.Values).Split("-")[0];
+        int preference = Int32.Parse(string.Join("", component.Data.Values).Split("-")[1]);
+        switch (role)
+        {
+            case "TOP":
+                _prefs.Top = preference;
+                break;
+            case "JGL":
+                _prefs.Jungle = preference;
+                break;
+            case "MID":
+                _prefs.Mid = preference;
+                break;
+            case "ADC":
+                _prefs.Adc = preference;
+                break;
+            case "SUP":
+                _prefs.Support = preference;
+                break;
+        }
+    }
 
-        //await command.User.SendMessageAsync("Preferences form", components: prefMenuBuilder.Build());
-        //await command.User.SendMessageAsync("Submit when finished", components: submitBuilder.Build());
+    public Task HandleButton(SocketMessageComponent component)
+    {
+        _IO.PlayersByMention[component.User.Mention] = _prefs.ToPlayer();
+        _IO.WritePlayersToFile();
+        PreferencesSaved?.Invoke(this, new(component));
+        _view.DeleteForms();
+        _view = null;
+        _prefs = null;
+        
+        return Task.CompletedTask;
+    } 
+
+    public void CreatePreferences(SocketSlashCommand command)
+    {
+        if (_view is null && _prefs is null)
+        {
+            _view = new();
+            _prefs = new(command);
+            PreferenceRequest += _view.SendPreferencesMenu;
+            PreferenceRequest?.Invoke(this, new(command));
+        }
+        else PreferencesExists?.Invoke(this, new(command));
     }
 }
