@@ -6,33 +6,35 @@ namespace ButlerBot;
 
 public class Lobby
 {
-    private List<SocketUser> _players;
     public readonly SocketUser Host;
-    public SocketMessageComponent JoinButton {get;set;}
+    public readonly ISocketMessageChannel Channel;
+    public readonly List<SocketUser> Players;
 
-    public Lobby(SocketUser host)
+    #region Events
+    public event EventHandler<EventArgs> LobbyUpdated;
+    public event EventHandler<EventArgs> LobbyStarted;
+    public event EventHandler<EventArgs> LobbyCancelled;
+    #endregion
+
+    public Lobby(SocketUser host, ISocketMessageChannel channel)
     {
         Host = host;
-        _players = new();
+        Channel = channel;
+        Players = new();
     }
 
     public void Add(SocketUser user)
     {
-        _players.Add(user);
+        Players.Add(user);
+        LobbyUpdated?.Invoke(this, new());
     }
 
-    public bool Contains(SocketUser user)
-    {
-        return _players.Contains(user);
-    }
+    public bool Contains(SocketUser user) => Players.Contains(user);
+    public bool Authorise(SocketUser user) => user == Host;
+    public void Cancel() => LobbyCancelled.Invoke(this, new());
 
     public string Matchmake()
     {
-        string output = "";
-        foreach(SocketUser p in _players)
-        {
-            output += p.Mention;
-        }
-        return output;
+        throw new NotImplementedException();
     }
 }

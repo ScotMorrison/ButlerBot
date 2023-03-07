@@ -8,7 +8,9 @@ internal class Program
 
     public async Task MainAsync()
     {
-        BotClient bot = new();
+        Bot bot = new();
+
+
 
         await bot.LoginAsync(writeCommands: false);
     }

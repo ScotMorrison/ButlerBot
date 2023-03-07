@@ -1,76 +1,53 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using System.ComponentModel;
-using System.Threading.Channels;
 
 namespace ButlerBot;
 
 public class LobbyView
 {
-    private EmbedBuilder _embedBuilder;
-    private RestUserMessage _matchMessage;
-    private ISocketMessageChannel _channel;
     private Lobby _lobby;
-    public SocketUser Host;
+    private EmbedBuilder? _embed;
+    private RestUserMessage? _message;
 
-    public LobbyView(ISocketMessageChannel channel, SocketUser host)
+    public LobbyView(Lobby lobby)
     {
-        Host = host;
-        _channel = channel;
-        _lobby = new(host);
-
-        _embedBuilder = new EmbedBuilder()
+        _lobby = lobby;
+        _lobby.LobbyUpdated += Update;
+        _lobby.LobbyCancelled += Delete;
+    }
+    public async Task Initialise()
+    {
+        _embed = new EmbedBuilder()
         {
             Title = "Players",
             Description = ""
         };
-        AddUserToLobby(host);
-    }
 
-    private async Task UpdateMatchMessage()
-    {
-        await _matchMessage.ModifyAsync(x => x.Embed = _embedBuilder.Build());
-    }
-
-    public async Task LobbyCreated(SocketSlashCommand command)
-    {
         var cb = new ComponentBuilder()
-        .WithButton("Join", "join-button");
-
-        await command.RespondAsync("Match Created");
-        _matchMessage = await _channel.SendMessageAsync(embed: _embedBuilder.Build(), components: cb.Build());
+        .WithButton("Join", "lobby-join");
+        _message = await _lobby.Channel.SendMessageAsync(embed: _embed.Build(), components: cb.Build());
     }
 
-    public async Task JoinLobby(SocketMessageComponent component)
+    private async void Update(object? sender, EventArgs args)
     {
-        string response;
-        if (!_lobby.Contains(component.User))
+        _embed.Description = "";
+        foreach(SocketUser p in _lobby.Players)
         {
-            AddUserToLobby(component.User);
-            await UpdateMatchMessage();
-            response = "Joined match";
+            _embed.Description += $"\n{p.Mention}";
         }
-        else
-        {
-            response = "You are already in the match";
-        }
-        await component.RespondAsync(response);
+        await UpdateLobbyMessage();
     }
 
-    private void AddUserToLobby(SocketUser user)
-    { 
-        _lobby.Add(user);
-        _embedBuilder.Description += $"\n{user.Mention}";
-    }
-
-    public async Task DeleteLobby()
+    private async void Delete(object? sender, EventArgs args)
     {
-        await _matchMessage.DeleteAsync();
+        await _message.DeleteAsync();
     }
 
-    internal void Matchmake()
+    private async Task UpdateLobbyMessage()
     {
-        throw new NotImplementedException();
+        await _message.ModifyAsync(x => x.Embed = _embed.Build());
     }
+
+    
 }
