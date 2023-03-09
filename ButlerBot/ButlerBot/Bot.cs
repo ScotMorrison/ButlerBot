@@ -26,8 +26,9 @@ public class Bot
         var config = new DiscordSocketConfig();
         _client = new DiscordSocketClient(config);
 
-        _lobbyController = new();
-        _prefController = new();
+        PrefIO pref = new();
+        _prefController = new(pref);
+        _lobbyController = new(pref);
         _responses = new(_lobbyController, _prefController);
     }
 
@@ -70,7 +71,7 @@ public class Bot
         switch (identifier)
         {
             case "lobby":
-                throw new NotImplementedException();
+                await _lobbyController.HandleButton(component);
                 break;
             case "pref":
                 await _prefController.HandleButton(component);

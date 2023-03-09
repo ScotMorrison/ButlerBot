@@ -13,11 +13,22 @@ internal class Responses
 
     private void SubscribeToLobby(LobbyController lobby)
     {
-        lobby.InvalidCommand += InvalidCommand;
         lobby.LobbyCreated += LobbyCreated;
         lobby.LobbyCancelled += LobbyCancelled;
-        lobby.LobbyExists += LobbyExists;
+        lobby.JoinedLobby += JoinedLobby;
+        lobby.MatchmakingRun += MatchmakingRun;
+        lobby.LobbyStarted += LobbyStarted;
+        lobby.LeftLobby += LeftLobby;
+
+        lobby.NoActiveLobby += NoActiveLobby;
         lobby.UnauthorisedAccess += UnauthorisedAccess;
+        lobby.InvalidCommand += InvalidCommand;
+        lobby.LobbyNotExists += LobbyNotExists;
+        lobby.LobbyExists += LobbyExists;
+        lobby.WrongNumberOfPlayers += WrongNumberOfPlayers;
+        lobby.AlreadyInLobby += AlreadyInLobby;
+        lobby.LobbyFull += LobbyFull;
+        lobby.NotInLobby += NotInLobby;
     }
 
     private void SubscribeToPreferences(PreferenceController prefs)
@@ -26,8 +37,6 @@ internal class Responses
         prefs.PreferencesExists += PreferencesExists;
         prefs.PreferencesSaved += PreferencesSaved;
     }
-
-
 
     #region Success Messages
     #region Lobby Messages
@@ -40,6 +49,26 @@ internal class Responses
     {
         string response = "The lobby has been successfully cancelled.";
         e.Command.RespondAsync(response, ephemeral: true);
+    }
+    private void JoinedLobby(object? sender, ComponentEventArgs e)
+    {
+        string response = "You have joined the lobby.";
+        e.Component.RespondAsync(response, ephemeral: true);
+    }
+    private void MatchmakingRun(object? sender, CommandEventArgs e)
+    {
+        string response = "Running matchmaking on the current teams.";
+        e.Command.RespondAsync(response, ephemeral: true);
+    }
+    private void LobbyStarted(object? sender, CommandEventArgs e)
+    {
+        string response = "Game has been started.";
+        e.Command.RespondAsync(response, ephemeral: true);
+    }
+    private void LeftLobby(object? sender, ComponentEventArgs e)
+    {
+        string response = "You have left the lobby.";
+        e.Component.RespondAsync(response, ephemeral: true);
     }
     #endregion
     #region Preference Messages
@@ -79,6 +108,32 @@ internal class Responses
     {
         string response = "There is currently no lobby.";
         e.Command.RespondAsync(response, ephemeral: true);
+    }
+    private void NoActiveLobby(object? sender, ComponentEventArgs e)
+    {
+        string response = "There is no active lobby to join.";
+        e.Component.RespondAsync(response, ephemeral: true);
+    }
+    private void WrongNumberOfPlayers(object? sender, CommandEventArgs e)
+    {
+        string response = "The lobby does not have the right number of players to do this.";
+        e.Command.RespondAsync(response, ephemeral: true);
+    }
+    private void LobbyFull(object? sender, ComponentEventArgs e)
+    {
+        string response = "Sorry, the lobby is full.";
+        e.Component.RespondAsync(response, ephemeral: true);
+    }
+
+    private void AlreadyInLobby(object? sender, ComponentEventArgs e)
+    {
+        string response = "You have already joined the lobby";
+        e.Component.RespondAsync(response, ephemeral: true);
+    }
+    private void NotInLobby(object? sender, ComponentEventArgs e)
+    {
+        string response = "You are not in the lobby.";
+        e.Component.RespondAsync(response, ephemeral: true);
     }
     #endregion
     #region Preference Messages

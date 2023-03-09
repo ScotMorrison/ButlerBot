@@ -13,7 +13,7 @@ public class RangeMatchingAlgorithm : MatchingAlgorithm
     public override Match CreateMatch()
     {
         Matchup[] matchups = new Matchup[5];
-        CreateRanges();
+        CreateRanges(_minimumPreference);
         while (_matchupOrder.Count > 0)
         {
             int role = FindSmallestRange();
@@ -23,7 +23,7 @@ public class RangeMatchingAlgorithm : MatchingAlgorithm
         return new(matchups);
     }
 
-    private void CreateRanges()
+    private void CreateRanges(int minimumPreference)
     {
         List<Player>[] output = new List<Player>[5];
 
@@ -32,7 +32,7 @@ public class RangeMatchingAlgorithm : MatchingAlgorithm
             int role = i;
             List<Player> currentList = output[role];
 
-            output[i] = _workingListOfPlayers.Where((p) => p.GetRolePreference(role) >= _minimumPreference).ToList();
+            output[i] = _workingListOfPlayers.Where((p) => p.GetRolePreference(role) >= minimumPreference).ToList();
 
             if (!output[i].Any())
             {

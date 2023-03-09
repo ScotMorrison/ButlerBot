@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using LeagueCustomMatchmaking.Matchmaking;
 
 namespace ButlerBot;
 
@@ -25,8 +26,17 @@ public class LobbyView
         };
 
         var cb = new ComponentBuilder()
-        .WithButton("Join", "lobby-join");
+        .WithButton("Join", "lobby-join")
+        .WithButton("Leave", "lobby-leave");
+
         _message = await _lobby.Channel.SendMessageAsync(embed: _embed.Build(), components: cb.Build());
+    }
+
+    public async Task PostMatchmadeGame(Match match)
+    {
+        _embed.Description = match.ToString();
+
+        await UpdateLobbyMessage();
     }
 
     private async void Update(object? sender, EventArgs args)

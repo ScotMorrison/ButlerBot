@@ -28,11 +28,16 @@ public class Lobby
         Players.Add(user);
         LobbyUpdated?.Invoke(this, new());
     }
-
+    public void Remove(SocketUser user)
+    {
+        Players.Remove(user);
+        LobbyUpdated?.Invoke(this, new());
+    }
     public bool Contains(SocketUser user) => Players.Contains(user);
     public bool Authorise(SocketUser user) => user == Host;
     public void Cancel() => LobbyCancelled.Invoke(this, new());
 
+    public int Count() => Players.Count;
     public void Matchmake()
     {
         LobbyUpdated.Invoke(this, new());

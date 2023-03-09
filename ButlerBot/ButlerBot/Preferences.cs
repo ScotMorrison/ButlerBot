@@ -5,10 +5,8 @@ namespace ButlerBot;
 
 internal class Preferences
 {
-    #region User Attributes
-    public readonly SocketUser User;
     public readonly string Nickname;
-    #endregion
+    public readonly ulong UserId;
 
     public int Top;
     public int Jungle;
@@ -16,10 +14,10 @@ internal class Preferences
     public int Adc;
     public int Support;
 
-    public Preferences(SocketSlashCommand cmd)
+    public Preferences(SocketUser user)
     {
-        User = cmd.User;
-        Nickname = User.Username;
+        Nickname = user.Username;
+        UserId = user.Id;
     }
 
     public Player ToPlayer()
